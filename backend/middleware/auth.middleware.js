@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import Admin from "../models/admin.model.js";
+import Admin from "../models/Admin.js";
 import BlacklistedToken from "../models/token.model.js";
 
 export const protect = async (req, res, next) => {
@@ -13,7 +13,6 @@ export const protect = async (req, res, next) => {
     return res.status(401).json({ message: "Not authorized" });
   }
 
-  // Check blacklist
   const blacklisted = await BlacklistedToken.findOne({ token });
   if (blacklisted) {
     return res.status(401).json({ message: "Token expired. Please login again." });
@@ -21,9 +20,17 @@ export const protect = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.admin = await Admin.findById(decoded.id).select("-password");
+
+    const admin = await Admin.findById(decoded.id).select("-password");
+
+    if (!admin) {
+      return res.status(401).json({ message: "Admin not found" });
+    }
+
+    req.admin = admin;
+
     next();
   } catch (error) {
-    res.status(401).json({ message: "Token failed" });
+    return res.status(401).json({ message: "Token failed" });
   }
 };
