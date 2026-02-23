@@ -18,6 +18,7 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState("");
   const [showModal, setShowModal] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -31,6 +32,9 @@ const Login = () => {
 
     if (Object.keys(validationErrors).length !== 0) return;
 
+    setLoading(true);
+    setApiError("");
+
     try {
       const res = await api.post("/auth/login", form);
 
@@ -41,6 +45,7 @@ const Login = () => {
       setApiError(
         err.response?.data?.message || "Something went wrong. Try again."
       );
+      setLoading(false);
     }
   };
 
@@ -97,7 +102,7 @@ const Login = () => {
           )}
 
           <div className="flex justify-center">
-            <Button type="submit">Login</Button>
+            <Button type="submit" loading={loading} disabled={loading}>Login</Button>
           </div>
         </form>
       </div>
